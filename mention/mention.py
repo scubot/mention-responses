@@ -35,3 +35,7 @@ class Mention(BotModule):
             await client.send_message(message.channel, msg)
         else:
             return 0
+
+    async def parse_command(self, message, client):
+        pass
+
