@@ -1,41 +1,32 @@
-import discord
-from modules.botModule import *
-import random
 import os
+import random
 
-class Mention(BotModule):
-    name = 'mention'
+import discord
+from discord.ext import commands
 
-    description = 'Adds some response text to when the bot is mentioned'
 
-    help_text = 'This module has no callable functions.'
-
-    trigger_string = ''
-
-    trigger_on_mention = True
+class Mention(commands.Cog):
+    def __init__(self, bot):
+        self.version = "2.0.0"
+        self.bot = bot
+        self.responses = self.get_responses()
 
     @staticmethod
     def get_responses():
         file_dir = os.path.dirname(__file__)
         try:
-            with open(os.path.join(file_dir, 'responses.txt')) as file:
+            with open((os.path.join(file_dir, 'responses.txt'))) as file:
                 responses = [line.strip() for line in file]
                 return responses
-        except FileNotFoundError:
-            print("Responses not found. Please fix.")
-            quit()
+        except FileExistsError:
+            print("[WARN] File not found in Mention module.")
+            raise discord.ext.commands.ExtensionFailed
 
-    def __init__(self):
-        super().__init__()
-        self.responses = self.get_responses()
+    @commands.Cog.listener()
+    async def on_message(self, message):
+        if self.bot.user.mentioned_in(message):
+            await message.channel.send(message.author.mention + " " + random.choice(self.responses))
 
-    async def on_mention(self, message, client):
-        if client.user.mentioned_in(message):
-            msg = message.author.mention + " " + random.choice(self.responses)
-            await client.send_message(message.channel, msg)
-        else:
-            return 0
 
-    async def parse_command(self, message, client):
-        pass
-
+def setup(bot):
+    bot.add_cog(Mention(bot))
